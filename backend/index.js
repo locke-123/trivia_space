@@ -1,5 +1,6 @@
 const express = require("express");
 const http = require("http");
+const https = require('https');
 const cors = require("cors")
 const { Server } = require("socket.io");
 const axios = require("axios");
@@ -21,6 +22,9 @@ const socketServer = new Server(httpServer, {
     },
 });
 
+const axiosInstance = axios.create({
+  httpsAgent: new https.Agent({ rejectUnauthorized: false }) // HTTPS 요청을 허용하는 설정
+});
 
 socketServer.on("connection", socket => {
     console.log("connect client by Socket.io");
@@ -31,13 +35,13 @@ socketServer.on("connection", socket => {
         console.log(req);
         socket.emit("first Respond", { data: "firstRespond" });
     });
-    socket.on("new Value", req => {
-        console.log(req);
-        socket.emit("new Value", { data: req.data + "is good" });
+
+    socket.on("Quiz Request", req => {
+        QuizStart(socket, req);
     });
 
-    socket.on("new Problem", req => {
-        DataFetching(socket)
+    socket.on("Answer Request", () => {
+        QuizPart2(socket);
     });
 
     socket.on("disconnect", () => {
@@ -45,19 +49,6 @@ socketServer.on("connection", socket => {
         socket.removeAllListeners();
     });
 });
-
-const DataFetching = (socket) => {
-    const apiUrl = "https://opentdb.com/api.php?amount=1&type=multiple";
-    axios.get(apiUrl)
-        .then(response => {
-            const data = response.data;
-            console.log(data.results[0]);
-            socket.emit("new Problem", data.results[0]);
-        })
-        .catch(error => {
-            console.error("Error fetching data:", error);
-        });
-}
 
 const GameCurtainTimer = (socket) => {
     let count = 3;
@@ -88,10 +79,124 @@ const GameStartText = (socket) => {
                     socket.emit("information Text", "이번 장르는 다음과 같습니다.");
                     const data = CategorySelector();
                     socket.emit("category select", {flag: true, data: data});
+                    setTimeout(() => {
+                        socket.emit("information Text", "그럼, 지금부터 게임을 시작하겠습니다.");
+                        ChoiceProblemPart(socket);
+                    }, 3000);
                 }, 4000);
             }, 3000);
         }, 2000);
     }, 1000);
+}
+
+const ChoiceProblemPart = (socket) => {
+    setTimeout(() => {
+        socket.emit("mainPageX", -1200);
+        setTimeout(() => {
+            socket.emit("information Text", "원하시는 카테고리와 문제를 골라주세요.");
+        }, 3000);
+    }, 2000);
+}
+
+let bill;
+
+const QuizStart = (socket, req) => {
+    const responses = req.split(":");
+    socket.emit("information Text", responses[0] + " " + responses[2] + "$를 고르셨습니다.");
+    bill = responses[2];
+    DataFetching(socket, responses);
+}
+
+let answers = ["","","",""];
+let correct_answer;
+let User_Answer;
+
+
+const QuizPart = (socket, data) => {
+    data.incorrect_answers.push(data.correct_answer);
+    answers = data.incorrect_answers;
+    correct_answer = data.correct_answer;
+    for (let i = answers.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [answers[i], answers[j]] = [answers[j], answers[i]];
+    }
+
+    socket.on("User Answer", req => {
+        User_Answer = req;
+    });
+
+    setTimeout(() => {
+        socket.emit("information Text", "그럼, 문제나갑니다.");
+        setTimeout(() => {
+            socket.emit("information Text", "");
+            socket.emit("new Problem", data.question);
+        }, 2000);
+    }, 2000);
+}
+
+const QuizPart2 = (socket) => {
+    socket.emit("new Answer", answers);
+    let count = 10;
+    const countdownInterval2 = setInterval(() => {
+        if (count === 0) {
+            clearInterval(countdownInterval2);
+            socket.emit("quizCountdown", count);
+            socket.off("User Answer", () => {});
+            QuizPart3(socket);
+        } else {
+            socket.emit("quizCountdown", count);
+            count--;
+        }
+    }, 1000);
+    socket.on("disconnect", () => {
+        console.log("clearInterval2");
+        clearInterval(countdownInterval2);
+    });
+}
+
+const QuizPart3 = (socket) => {
+    setTimeout(() => {
+        socket.emit("information Text", "정답은..");
+        setTimeout(() => {
+            socket.emit("information Text", correct_answer + "입니다.");
+            socket.emit("open Answer", correct_answer);
+            setTimeout(() => {
+                if(correct_answer === User_Answer) {
+                    socket.emit("information Text", `정답을 맞추신 ~님께 ${bill}점을 드립니다.`);
+                } else {
+                    socket.emit("information Text", "이번엔 아무도 맞추지 못했습니다.");
+                }
+                setTimeout(() => {
+                    socket.emit("information Text", "원하시는 카테고리와 문제를 골라주세요.");
+                    socket.emit("mainPageX", -1200);
+                    socket.emit("initial Quiz");
+                }, 3000);
+            }, 1000);
+        }, 1000);
+    }, 2000);
+}
+
+const DataFetching = (socket, req) => {
+    const apiUrl = `https://opentdb.com/api.php?amount=1&category=${CategoryNumber(req[0])}&difficulty=${req[1]}&type=multiple`;
+    axiosInstance.get(apiUrl)
+        .then(response => {
+            const data = response.data;
+            console.log(data.results[0]);
+            setTimeout(() => {
+                socket.emit("mainPageX", -2400);
+                QuizPart(socket, data.results[0]);
+            }, 1000);
+        })
+        .catch(error => {
+            console.error("Error fetching data:", error);
+        });
+}
+
+const CategoryNumber = (string) => {
+    const arr = ["일반 지식", "도서", "영화", "음악", "뮤지컬 및 극장", "텔레비전", "비디오 게임", "보드게임", "과학", "컴퓨터 과학", "수학", "신화", "스포츠", "지리", "역사", "정치", "예술", "유명인", "동물", "차량", "코믹스", "가젯", "일본 애니&만화", "카툰&애니"];
+    const index = arr.indexOf(string);
+
+    return index+9;
 }
 
 const CategorySelector = () => {

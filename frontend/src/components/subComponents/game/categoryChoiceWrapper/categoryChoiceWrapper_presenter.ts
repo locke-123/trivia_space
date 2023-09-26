@@ -1,4 +1,16 @@
+import { keyframes } from "@emotion/react";
 import styled from "@emotion/styled";
+
+const slideIn = keyframes`
+    from {
+        opacity: 0;
+        transform: translateY(-50px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+`
 
 export const Container = styled.div`
     width: 1200px;
@@ -20,4 +32,5 @@ export const CategoryCard = styled.div`
     align-items: center;
     font-size: 20px;
     box-shadow: 0px 0px 3px 1px #ccc;
+    animation: ${slideIn} 1s ease-in-out;
 `

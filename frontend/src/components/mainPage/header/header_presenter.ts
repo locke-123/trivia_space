@@ -27,7 +27,7 @@ export const LogoWrapper = styled.div`
 
 export const AvatarWrapper = styled.div`
     margin-left: 50px;
-    width: 120px;
+    width: 130px;
     display: flex;
     flex-direction: row;
     justify-content: space-between;

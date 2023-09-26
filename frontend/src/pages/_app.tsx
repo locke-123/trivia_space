@@ -1,12 +1,16 @@
 import '@/styles/globals.css'
+import { SessionProvider } from "next-auth/react"
 import { ConfigProvider } from 'antd';
-import type { AppProps } from 'next/app'
 import theme_basic from '@/styles/theme/themeConfig';
 
-export default function App({ Component, pageProps }: AppProps) {
+export default function App({ session, Component, ...pageProps }: any) {
   return (
-    <ConfigProvider theme={theme_basic}>
-      <Component {...pageProps} />
-    </ConfigProvider>
+    <>
+      <SessionProvider session={session} refetchInterval={5 * 60}>
+        <ConfigProvider theme={theme_basic}>
+          <Component {...pageProps} />
+        </ConfigProvider>
+      </SessionProvider>
+    </>
   )
 }

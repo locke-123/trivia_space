@@ -56,4 +56,5 @@ export const MainWrapper = styled.div`
     flex-direction: row;
     justify-content: center;
     align-items: center;
+    transition: transform 1s ease-in-out;
 `

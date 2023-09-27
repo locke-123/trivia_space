@@ -1,14 +1,13 @@
 import ProfileWrapperComponent from "@/components/subComponents/game/profileWrapper/profileWrapper_component"
 import { Container, BottomProfilesWrapper, GameCurtain, CountDownValue, MainWrapper, InformationWrapper } from "./game_presenter" 
-import io from 'socket.io-client';
+import io, { Socket } from 'socket.io-client';
 import { Button, Input, Space } from "antd";
-import { SetStateAction, use, useEffect, useState } from "react";
+import { SetStateAction, use, useEffect, useRef, useState } from "react";
 import Typist from 'react-typist';
 import ChoiceTableWrapperComponent from "@/components/subComponents/game/choiceTableWrapper/choiceTableWrapper_component";
 import CategoryChoiceWrapperComponent from "@/components/subComponents/game/categoryChoiceWrapper/categoryChoiceWrapper_component";
 import QuizWrapperComponent from "@/components/subComponents/game/quizWrapper/quizWrapper_component";
-
-const socketClient = io("http://127.0.0.1:3030");
+import { useRouter } from "next/router";
 
 export default function GameComponent() {
     const [curtainHeight, setCurtainHeight] = useState(700);
@@ -27,89 +26,121 @@ export default function GameComponent() {
         data: [],
     })
     const [disabledButtons, setDisabledButtons] = useState([""]);
+    const [roomMemberArray, setRoomMemberArray] = useState([]);
+    const [isAbleToClickQuiz, setIsAbleToClickQuiz] = useState(false);
 
+    const router = useRouter();
+
+    const socketRef = useRef<Socket | null>(null);
 
     useEffect(() => {
-        socketClient.on("connect", () => {
-            console.log("connection server");
-        });
-        socketClient.emit("first Request", { data: "first Reuqest" });
+        socketRef.current = io("http://127.0.0.1:3030");
 
-        socketClient.on("first Respond", req => {
-            console.log(req);
-        });
+        if (typeof window !== 'undefined') {
+            socketRef.current.on("connect", () => {
+                console.log("connection server");
+            });
 
-        socketClient.on("information Text", req => {
-            console.log(req);
-            setInformationText(req);
-        });
+            socketRef.current.emit("first Request", { data: "first Reuqest" });
+            
 
-        socketClient.on("mainPageX", req => {
-            console.log("main 페이지 이동 = " + req);
-            setMainPageX(req);
-        });
+            socketRef.current.on("first Respond", req => {
+                console.log(req);
+            });
 
-        socketClient.on("category select", req => {
-            console.log(req);
-            setCategoryData(req);
-        });
-
-        socketClient.on("initial Quiz", () => {
-            setQuizCountValue(10);
-            setQuizData("");
-            setAnswerData(["","","",""]);
-            setActiveAnswer(false);
-            setActiveButtonIndex(null);
-            setAnswerButtonIndex(null);
-            setAnswerDataFlag(0);
-        });
-
-        socketClient.on("countdown", (value) => {
-            console.log(value);
-            if (value === 0) {
-                setCountValue(value);
-                setCurtainHeight(95);
-                socketClient.off("countdown");
-            } else {
-                setCountValue(value);
-            }
-        });
-
-        socketClient.on("new Problem", (value) => {
-            console.log(value);
-            setQuizData(value);
-        });
-
-        socketClient.on("new Answer", (value) => {
-            console.log(value);
-            setAnswerData(value);
-        });
-
-        socketClient.on("quizCountdown", (value) => {
-            console.log(value);
-            setQuizCountValue(value);
-        });
-
-        socketClient.on("open Answer", (value) => {
-            console.log(value);
-            setAnswerButtonIndex(value);
-        });
+            socketRef.current.on("room member", req => {
+                console.log("room member", req);
+                setRoomMemberArray(req);
+            });
     
-        socketClient.on("disconnect", () => {
-            console.log("Disconnected from server");
-        });
+            socketRef.current.on("block quiz", () => {
+                setIsAbleToClickQuiz(prev => !prev);
+            });
+    
+            socketRef.current.on("information Text", req => {
+                console.log(req);
+                setInformationText(req);
+            });
+    
+            socketRef.current.on("mainPageX", req => {
+                console.log("main 페이지 이동 = " + req);
+                setMainPageX(req);
+            });
+    
+            socketRef.current.on("category select", req => {
+                console.log(req);
+                setCategoryData(req);
+            });
+    
+            socketRef.current.on("initial Quiz", () => {
+                setQuizCountValue(10);
+                setQuizData("");
+                setAnswerData(["","","",""]);
+                setActiveAnswer(false);
+                setActiveButtonIndex(null);
+                setAnswerButtonIndex(null);
+                setAnswerDataFlag(0);
+            });
+    
+            socketRef.current.on("countdown", (value) => {
+                console.log(value);
+                if (value === 0) {
+                    setCountValue(value);
+                    setCurtainHeight(95);
+                    socketRef.current!.off("countdown");
+                } else {
+                    setCountValue(value);
+                }
+            });
+    
+            socketRef.current.on("new Problem", (value) => {
+                console.log(value);
+                setQuizData(value);
+            });
+    
+            socketRef.current.on("new Answer", (value) => {
+                console.log(value);
+                setAnswerData(value);
+            });
+    
+            socketRef.current.on("quizCountdown", (value) => {
+                console.log(value);
+                setQuizCountValue(value);
+            });
+    
+            socketRef.current.on("open Answer", (value) => {
+                console.log(value);
+                setAnswerButtonIndex(value);
+            });
+
+            socketRef.current.on("quiz choice", (value) => {
+                console.log(value);
+                setDisabledButtons((prevDisabledButtons) => [...prevDisabledButtons, value]);
+            });
+        
+            socketRef.current.on("disconnect", () => {
+                router.push("/");
+                console.log("Disconnected from server");
+            });
+
+            socketRef.current.emit("request room member");
+        
+            return () => {
+                socketRef.current!.disconnect();
+                console.log('소켓 연결 해제');
+            };
+        }
     }, [])
 
     const onClickQuiz = (e: any) => {
         console.log(e);
         console.log(e.target.id);
-        setDisabledButtons((prevDisabledButtons) => [...prevDisabledButtons, e.target.id]);
-        socketClient.emit("Quiz Request", e.target.id);
+        socketRef.current!.emit("Quiz Request", e.target.id);
     }
     
     const onQuizTypeDone = () => {
         if(quizData !== "") {
-            socketClient.emit("Answer Request");
+            socketRef.current!.emit("Answer Request");
             setAnswerDataFlag(1);
             setActiveAnswer(true);
         } else {
@@ -122,7 +153,7 @@ export default function GameComponent() {
         console.log(e);
         console.log(e.target.id);
         setActiveButtonIndex(e.target.title);
-        socketClient.emit("User Answer", e.target.id);
+        socketRef.current!.emit("User Answer", e.target.id);
         console.log(activeButtonIndex);
         console.log(answerButtonIndex);
     }
@@ -132,17 +163,16 @@ export default function GameComponent() {
             <InformationWrapper><Typist key={informationText}>{informationText}</Typist></InformationWrapper>
             <MainWrapper style={{transform: `translateX(${mainPageX}px)`}} >
                 <CategoryChoiceWrapperComponent categoryData={categoryData} />
-                <ChoiceTableWrapperComponent disabledButtons={disabledButtons} categoryData={categoryData} onClickQuiz={onClickQuiz} />
+                <ChoiceTableWrapperComponent isAbleToClickQuiz={isAbleToClickQuiz} disabledButtons={disabledButtons} categoryData={categoryData} onClickQuiz={onClickQuiz} />
                 <QuizWrapperComponent activeAnswer={activeAnswer} answerButtonIndex={answerButtonIndex} activeButtonIndex={activeButtonIndex} quizData={quizData} onClickAnswer={onClickAnswer} onQuizTypeDone={onQuizTypeDone} answerData={answerData} answerDataFlag={answerDataFlag} quizCountValue={quizCountValue} />
             </MainWrapper>
             <GameCurtain style={{height: `${curtainHeight}px`}}>
                 <CountDownValue style={countValue === 0 ? {opacity: "0"} : {opacity: "1"}}>{countValue}</CountDownValue>
             </GameCurtain>
             <BottomProfilesWrapper>
-                <ProfileWrapperComponent />
-                <ProfileWrapperComponent />
-                <ProfileWrapperComponent />
-                <ProfileWrapperComponent />
+                {roomMemberArray.map((el, key) => (
+                    <ProfileWrapperComponent userName={el} key={key}/>
+                ))}
             </BottomProfilesWrapper>
         </Container>
     )

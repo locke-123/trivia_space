@@ -1,11 +1,48 @@
 import Head from 'next/head'
-import Image from 'next/image'
 import styles from '@/styles/Home.module.css'
-import { Button } from 'antd'
 import HeaderComponent from '@/components/mainPage/header/header_component'
+import RoomComponent from '@/components/mainPage/room/room_component'
 import GameComponent from '@/components/mainPage/game/game_component'
+import { useEffect, useRef, useState } from 'react'
+import { Socket, io } from 'socket.io-client'
+import router from 'next/router'
 
 export default function Home() {
+  const [isEntered, setIsEntered] = useState(false);
+  const [roomList, setRoomList] = useState([]);
+  const [roomNumber, setRoomNumber] = useState();
+  
+  const socketRef = useRef<Socket | null>(null);
+
+    useEffect(() => {
+        socketRef.current = io("http://127.0.0.1:3030");
+
+        if (typeof window !== 'undefined') {
+          socketRef.current.on("connect", () => {
+              console.log("connection server");
+          });
+
+          socketRef.current.on("disconnect", () => {
+            router.push("/");
+            console.log("Disconnected from server");
+          });
+
+          socketRef.current.on("refresh room info", (res) => {
+            setRoomList(res);
+            console.log("room 정보 갱신");
+          });
+
+          socketRef.current.emit("init");
+      
+          return () => {
+              socketRef.current!.disconnect();
+              console.log('소켓 연결 해제');
+          };
+        }
+    },[])
+
+    
+
   return (
     <>
       <Head>
@@ -16,7 +53,8 @@ export default function Home() {
       </Head>
       <main className={styles.main}>
         <HeaderComponent />
-        <GameComponent />
+        {isEntered ? <GameComponent roomNumber={roomNumber} socketRef={socketRef} setIsEntered={setIsEntered} />
+         : <RoomComponent socketRef={socketRef} roomList={roomList} setRoomNumber={setRoomNumber} setIsEntered={setIsEntered} />}
       </main>
     </>
   )

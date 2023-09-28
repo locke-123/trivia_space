@@ -1,13 +1,26 @@
 import styled from "@emotion/styled";
 
 export const Container = styled.div`
+    position: relative;
     border: 1px solid #ccc;
     border-radius: 16px;
     width: 1200px;
     height: 700px;
     margin: 0 auto;
     margin-top: 20px;
-    position: relative;
+    background-color: white;
+`
+
+export const RoomController = styled.div`
+    z-index: 1;
+    padding: 20px;
+    position:absolute;
+    top: 0px;
+    width: 100%;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
 `
 
 export const BottomProfilesWrapper = styled.div`

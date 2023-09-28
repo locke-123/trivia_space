@@ -1,5 +1,5 @@
 import ProfileWrapperComponent from "@/components/subComponents/game/profileWrapper/profileWrapper_component"
-import { Container, BottomProfilesWrapper, GameCurtain, CountDownValue, MainWrapper, InformationWrapper } from "./game_presenter" 
+import { Container, BottomProfilesWrapper, GameCurtain, CountDownValue, MainWrapper, InformationWrapper, RoomController } from "./game_presenter" 
 import io, { Socket } from 'socket.io-client';
 import { Button, Input, Space } from "antd";
 import { SetStateAction, use, useEffect, useRef, useState } from "react";
@@ -9,7 +9,7 @@ import CategoryChoiceWrapperComponent from "@/components/subComponents/game/cate
 import QuizWrapperComponent from "@/components/subComponents/game/quizWrapper/quizWrapper_component";
 import { useRouter } from "next/router";
 
-export default function GameComponent() {
+export default function GameComponent({socketRef, roomNumber, setIsEntered}) {
     const [curtainHeight, setCurtainHeight] = useState(700);
     const [mainPageX, setMainPageX] = useState(0);
     const [countValue, setCountValue] = useState(3);
@@ -31,23 +31,8 @@ export default function GameComponent() {
 
     const router = useRouter();
 
-    const socketRef = useRef<Socket | null>(null);
-
     useEffect(() => {
-        socketRef.current = io("http://127.0.0.1:3030");
-
         if (typeof window !== 'undefined') {
-            socketRef.current.on("connect", () => {
-                console.log("connection server");
-            });
-
-            socketRef.current.emit("first Request", { data: "first Reuqest" });
-            
-
-            socketRef.current.on("first Respond", req => {
-                console.log(req);
-            });
-
             socketRef.current.on("room member", req => {
                 console.log("room member", req);
                 setRoomMemberArray(req);
@@ -117,18 +102,8 @@ export default function GameComponent() {
                 console.log(value);
                 setDisabledButtons((prevDisabledButtons) => [...prevDisabledButtons, value]);
             });
-        
-            socketRef.current.on("disconnect", () => {
-                router.push("/");
-                console.log("Disconnected from server");
-            });
 
             socketRef.current.emit("request room member");
-        
-            return () => {
-                socketRef.current!.disconnect();
-                console.log('소켓 연결 해제');
-            };
         }
     }, [])
 
@@ -158,8 +133,17 @@ export default function GameComponent() {
         console.log(answerButtonIndex);
     }
 
+    const onClickQuit = (e: any) => {
+        socketRef.current!.emit("somebody quit room", roomNumber);
+        setIsEntered(false);
+    }
+
     return (
         <Container>
+            <RoomController>
+                <h1>{roomNumber}</h1>
+                <Button onClick={onClickQuit}>나가기</Button>
+            </RoomController>
             <InformationWrapper><Typist key={informationText}>{informationText}</Typist></InformationWrapper>
             <MainWrapper style={{transform: `translateX(${mainPageX}px)`}} >
                 <CategoryChoiceWrapperComponent categoryData={categoryData} />

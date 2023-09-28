@@ -26,64 +26,80 @@ const axiosInstance = axios.create({
   httpsAgent: new https.Agent({ rejectUnauthorized: false }) // HTTPS 요청을 허용하는 설정
 });
 
-let isGameStated = false;
-
-const getRoomMemberArray = (roomName) => {
-    const mySet = socketServer.sockets.adapter.rooms.get("room 237");
-    if(mySet === undefined) {
-        return [];
-    } else {
-        const result = Array.from(mySet);
-        return result;
-    }
-}
+let roomMemberArr = [{title: "방제1", number: "315", member: 1}]
 
 socketServer.on("connection", socket => {
-    console.log("connect client by Socket.io");
-
-    if(getRoomMemberArray("room 237") > 2 || isGameStated === true){
-        socket.disconnect();
-    } else {
-    socket.join("room 237");
-    console.log(socketServer.sockets.adapter.rooms.get("room 237"));
-
-    socket.on("request room member", () => {
-        console.log(getRoomMemberArray("room 237"));
-        socket.to("room 237").emit("room member", getRoomMemberArray("room 237"));
-        socket.emit("room member", getRoomMemberArray("room 237"));
+    console.log("connect client by Socket.io to lobby");
+    socket.join("lobby");
+    
+    socket.on("init", () => {
+        console.log("init 요청 받음");
+        socket.emit("refresh room info", roomMemberArr);
     });
 
-    if(socketServer.sockets.adapter.rooms.get("room 237")?.size > 1) {
-        GameCurtainTimer(socket);
-    }
-
-    socket.on("first Request", req => {
-        console.log(req);
-        socket.to("room 237").emit("first Respond", { data: "firstRespond" });
-        socket.emit("first Respond", { data: "firstRespond" });
+    socket.on("somebody enter room", (req) => {
+        console.log(`누군가 ${req}방에 들어감`);
+        roomMemberArr.find(room => room.number === req).member += 1;
+        socket.to("lobby").emit("refresh room info", roomMemberArr);
+        socket.leave("lobby");
+        socket.join("room|"+req);
+        console.log(socketServer.sockets.adapter.rooms);
+        GameStart(socket, req);
     });
 
-    socket.on("Quiz Request", req => {
-        socket.to("room 237").emit("quiz choice", req);
-        socket.emit("quiz choice", req);
-        socket.to("room 237").emit("block quiz");
-        socket.emit("block quiz");
-        QuizStart(socket, req);
+    socket.on("somebody quit room", (req) => {
+        LeaveRoom(socket);
     });
 
-    socket.on("Answer Request", () => {
-        QuizPart2(socket);
+    socket.on("disconnecting", () => {
+        console.log("Client disconnecting");
+        LeaveRoom(socket);
     });
 
     socket.on("disconnect", () => {
-        socket.leave("room 237");
-        console.log(getRoomMemberArray("room 237"));
-        socket.to("room 237").emit("room member", getRoomMemberArray("room 237"));
         console.log("Client disconnected");
         socket.removeAllListeners();
     });
-}
 });
+
+const LeaveRoom = (socket) => {
+    for (const item of socket.rooms) {
+        if (item.startsWith("room|")) {
+            const number = item.split('|')[1];
+            console.log(`누군가 ${number}방을 나감`);
+            roomMemberArr.find(room => room.number === number).member -= 1;
+            socket.to("lobby").emit("refresh room info", roomMemberArr);
+            socket.leave("room|"+number);
+            socket.join("lobby");
+            socket.emit("refresh room info", roomMemberArr);
+            console.log(socketServer.sockets.adapter.rooms);
+        }
+    }
+}
+
+// =================== 카운트다운하고 커튼 걷는 부분 여기서부터 이어서 작성=======================
+const GameStart = (socket, number) => {
+    if(roomMemberArr.find(room => room.number === number).member > 1) {
+        let count = 3;
+        const GameCountDownInterval = setInterval(() => {
+            if (count === 0) {
+                clearInterval(GameCountDownInterval);
+                socket.to("room 237").emit("countdown", count);
+                socket.emit("countdown", count);
+                GameStartText(socket);
+                //isGameStated = true;
+            } else {
+                socket.to("room 237").emit("countdown", count);
+                socket.emit("countdown", count);
+                count--;
+            }
+        }, 1000);
+        socket.on("disconnect", () => {
+            console.log("clearGameCountDownInterval");
+            clearInterval(GameCountDownInterval);
+        });
+    }
+}
 
 const GameCurtainTimer = (socket) => {
     let count = 3;
@@ -93,7 +109,7 @@ const GameCurtainTimer = (socket) => {
             socket.to("room 237").emit("countdown", count);
             socket.emit("countdown", count);
             GameStartText(socket);
-            isGameStated = true;
+            //isGameStated = true;
         } else {
             socket.to("room 237").emit("countdown", count);
             socket.emit("countdown", count);

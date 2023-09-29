@@ -46,11 +46,6 @@ export const GameCurtain = styled.div`
     align-items: center;
 `
 
-export const CountDownValue = styled.div`
-    font-size: 36px;
-    color: white;
-`
-
 export const InformationWrapper = styled.div`
     width: 100%;
     height: 50px;

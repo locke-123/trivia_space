@@ -43,7 +43,7 @@ const items2: MenuProps['items'] = [
   },
 ];
 
-export default function HeaderComponent() {
+export default function HeaderComponent({socketRef}) {
   const router = useRouter();
   const [current, setCurrent] = useState(router.pathname);
   const session = useSession();
@@ -52,8 +52,14 @@ export default function HeaderComponent() {
       setCurrent(e.key);
       router.push(e.key);
   };
-  console.log(session);
-  console.log(session.data);
+
+  if(socketRef !== undefined) {
+    if(socketRef.current !== null) {
+      console.log(session);
+      console.log(socketRef);
+      socketRef.current!.emit("session connect", session);
+    }
+  }
 
   return (
       <Container>

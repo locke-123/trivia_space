@@ -6,6 +6,7 @@ import GameComponent from '@/components/mainPage/game/game_component'
 import { useEffect, useRef, useState } from 'react'
 import { Socket, io } from 'socket.io-client'
 import router from 'next/router'
+import { Button, Modal } from 'antd'
 
 export default function Home() {
   const [isEntered, setIsEntered] = useState(false);
@@ -14,34 +15,46 @@ export default function Home() {
   
   const socketRef = useRef<Socket | null>(null);
 
-    useEffect(() => {
-        socketRef.current = io("http://127.0.0.1:3030");
+  useEffect(() => {
+      socketRef.current = io("http://127.0.0.1:3030");
 
-        if (typeof window !== 'undefined') {
-          socketRef.current.on("connect", () => {
-              console.log("connection server");
-          });
+      if (typeof window !== 'undefined') {
+        socketRef.current.on("connect", () => {
+            console.log("connection server");
+        });
 
-          socketRef.current.on("disconnect", () => {
-            router.push("/");
-            console.log("Disconnected from server");
-          });
+        socketRef.current.on("disconnect", () => {
+          router.push("/");
+          console.log("Disconnected from server");
+        });
 
-          socketRef.current.on("refresh room info", (res) => {
-            setRoomList(res);
-            console.log("room 정보 갱신");
-          });
+        socketRef.current.on("refresh room info", (res) => {
+          setRoomList(res);
+          console.log("room 정보 갱신");
+        });
 
-          socketRef.current.emit("init");
-      
-          return () => {
-              socketRef.current!.disconnect();
-              console.log('소켓 연결 해제');
-          };
-        }
-    },[])
+        socketRef.current.on("is room started",(res, number, duplicateAcc) => {
+          if(duplicateAcc === true) {
+            alert("이미 같은 계정으로 게임이 진행중 입니다.")
+          } else {
+            if(res === true) {
+              alert("이미 시작한 방입니다.");
+            } else {
+              setIsEntered(true);
+              setRoomNumber(number);
+              socketRef.current!.emit("somebody enter room", number);
+            }
+          }
+        })
 
+        socketRef.current.emit("init");
     
+        return () => {
+            socketRef.current!.disconnect();
+            console.log('소켓 연결 해제');
+        };
+      }
+  },[])
 
   return (
     <>
@@ -52,7 +65,7 @@ export default function Home() {
         <link rel="icon" href="/favicon.ico" />
       </Head>
       <main className={styles.main}>
-        <HeaderComponent />
+        <HeaderComponent socketRef={socketRef} />
         {isEntered ? <GameComponent roomNumber={roomNumber} socketRef={socketRef} setIsEntered={setIsEntered} />
          : <RoomComponent socketRef={socketRef} roomList={roomList} setRoomNumber={setRoomNumber} setIsEntered={setIsEntered} />}
       </main>

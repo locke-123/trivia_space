@@ -1,18 +1,15 @@
 import ProfileWrapperComponent from "@/components/subComponents/game/profileWrapper/profileWrapper_component"
 import { Container, BottomProfilesWrapper, GameCurtain, CountDownValue, MainWrapper, InformationWrapper, RoomController } from "./game_presenter" 
-import io, { Socket } from 'socket.io-client';
-import { Button, Input, Space } from "antd";
-import { SetStateAction, use, useEffect, useRef, useState } from "react";
+import { Button } from "antd";
+import { useEffect, useState } from "react";
 import Typist from 'react-typist';
 import ChoiceTableWrapperComponent from "@/components/subComponents/game/choiceTableWrapper/choiceTableWrapper_component";
 import CategoryChoiceWrapperComponent from "@/components/subComponents/game/categoryChoiceWrapper/categoryChoiceWrapper_component";
 import QuizWrapperComponent from "@/components/subComponents/game/quizWrapper/quizWrapper_component";
-import { useRouter } from "next/router";
 
 export default function GameComponent({socketRef, roomNumber, setIsEntered}) {
     const [curtainHeight, setCurtainHeight] = useState(700);
     const [mainPageX, setMainPageX] = useState(0);
-    const [countValue, setCountValue] = useState(3);
     const [quizCountValue, setQuizCountValue] = useState(10);
     const [quizData, setQuizData] = useState("");
     const [answerData, setAnswerData] = useState(["","","",""]);
@@ -26,20 +23,28 @@ export default function GameComponent({socketRef, roomNumber, setIsEntered}) {
         data: [],
     })
     const [disabledButtons, setDisabledButtons] = useState([""]);
-    const [roomMemberArray, setRoomMemberArray] = useState([]);
     const [isAbleToClickQuiz, setIsAbleToClickQuiz] = useState(false);
-
-    const router = useRouter();
+    const [showGameStartButton, setShowGameStartButton] = useState(false);
+    const [MemberInfo, setMemberInfo] = useState([{name: "aaa", money: 0}]);
 
     useEffect(() => {
         if (typeof window !== 'undefined') {
-            socketRef.current.on("room member", req => {
-                console.log("room member", req);
-                setRoomMemberArray(req);
+            socketRef.current.on("room member", (res) => {
+                console.log(res);
+                setMemberInfo(res);
             });
-    
-            socketRef.current.on("block quiz", () => {
-                setIsAbleToClickQuiz(prev => !prev);
+
+            socketRef.current.on("can start game", () => {
+                setShowGameStartButton(prev => !prev);
+            });
+
+            socketRef.current.on("start game", () => {
+                setShowGameStartButton(false);
+                setCurtainHeight(95);
+            });
+
+            socketRef.current.on("block quiz", (res) => {
+                setIsAbleToClickQuiz(res);
             });
     
             socketRef.current.on("information Text", req => {
@@ -67,17 +72,6 @@ export default function GameComponent({socketRef, roomNumber, setIsEntered}) {
                 setAnswerDataFlag(0);
             });
     
-            socketRef.current.on("countdown", (value) => {
-                console.log(value);
-                if (value === 0) {
-                    setCountValue(value);
-                    setCurtainHeight(95);
-                    socketRef.current!.off("countdown");
-                } else {
-                    setCountValue(value);
-                }
-            });
-    
             socketRef.current.on("new Problem", (value) => {
                 console.log(value);
                 setQuizData(value);
@@ -103,19 +97,24 @@ export default function GameComponent({socketRef, roomNumber, setIsEntered}) {
                 setDisabledButtons((prevDisabledButtons) => [...prevDisabledButtons, value]);
             });
 
-            socketRef.current.emit("request room member");
+            socketRef.current.emit("room member", roomNumber);
+            console.log(MemberInfo);
+
+            return () => {
+                socketRef.current!.emit("somebody quit room", roomNumber);
+            }
         }
     }, [])
 
     const onClickQuiz = (e: any) => {
         console.log(e);
         console.log(e.target.id);
-        socketRef.current!.emit("Quiz Request", e.target.id);
+        socketRef.current!.emit("Quiz Request", e.target.id, roomNumber);
     }
     
     const onQuizTypeDone = () => {
         if(quizData !== "") {
-            socketRef.current!.emit("Answer Request");
+            socketRef.current!.emit("Answer Request", roomNumber);
             setAnswerDataFlag(1);
             setActiveAnswer(true);
         } else {
@@ -128,7 +127,7 @@ export default function GameComponent({socketRef, roomNumber, setIsEntered}) {
         console.log(e);
         console.log(e.target.id);
         setActiveButtonIndex(e.target.title);
-        socketRef.current!.emit("User Answer", e.target.id);
+        socketRef.current!.emit("User Answer", e.target.id, roomNumber);
         console.log(activeButtonIndex);
         console.log(answerButtonIndex);
     }
@@ -136,6 +135,10 @@ export default function GameComponent({socketRef, roomNumber, setIsEntered}) {
     const onClickQuit = (e: any) => {
         socketRef.current!.emit("somebody quit room", roomNumber);
         setIsEntered(false);
+    }
+
+    const onClickGameStart = () => {
+        socketRef.current!.emit("game start", roomNumber);
     }
 
     return (
@@ -151,11 +154,11 @@ export default function GameComponent({socketRef, roomNumber, setIsEntered}) {
                 <QuizWrapperComponent activeAnswer={activeAnswer} answerButtonIndex={answerButtonIndex} activeButtonIndex={activeButtonIndex} quizData={quizData} onClickAnswer={onClickAnswer} onQuizTypeDone={onQuizTypeDone} answerData={answerData} answerDataFlag={answerDataFlag} quizCountValue={quizCountValue} />
             </MainWrapper>
             <GameCurtain style={{height: `${curtainHeight}px`}}>
-                <CountDownValue style={countValue === 0 ? {opacity: "0"} : {opacity: "1"}}>{countValue}</CountDownValue>
+                {showGameStartButton ? <Button onClick={onClickGameStart}>게임시작</Button> : ""}
             </GameCurtain>
             <BottomProfilesWrapper>
-                {roomMemberArray.map((el, key) => (
-                    <ProfileWrapperComponent userName={el} key={key}/>
+                {MemberInfo.map((el, key) => (
+                    <ProfileWrapperComponent userName={el.name} money={el.money} key={key}/>
                 ))}
             </BottomProfilesWrapper>
         </Container>

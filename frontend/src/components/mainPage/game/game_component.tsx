@@ -2,7 +2,7 @@ import ProfileWrapperComponent from "@/components/subComponents/game/profileWrap
 import { Container, BottomProfilesWrapper, GameCurtain, MainWrapper, InformationWrapper, RoomController } from "./game_presenter" 
 import { Button } from "antd";
 import { useEffect, useState } from "react";
-import Typist from 'react-typist';
+import Typist from 'react-typist-component';
 import ChoiceTableWrapperComponent from "@/components/subComponents/game/choiceTableWrapper/choiceTableWrapper_component";
 import CategoryChoiceWrapperComponent from "@/components/subComponents/game/categoryChoiceWrapper/categoryChoiceWrapper_component";
 import QuizWrapperComponent from "@/components/subComponents/game/quizWrapper/quizWrapper_component";

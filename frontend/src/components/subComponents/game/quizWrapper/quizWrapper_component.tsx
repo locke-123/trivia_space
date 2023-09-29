@@ -1,7 +1,7 @@
 import { Container, QuizWrapper, AnswerWrapper, QuizCountDownWrapper } from "./quizWrapper_presenter";
 import type { quizWrapperProps } from "../gameComponentTypes";
 import { Button } from "antd";
-import Typist from "react-typist";
+import Typist from "react-typist-component";
 
 export default function QuizWrapperComponent({ quizData, onQuizTypeDone, answerData, answerDataFlag, quizCountValue, onClickAnswer, activeButtonIndex, answerButtonIndex, activeAnswer }: quizWrapperProps){
 

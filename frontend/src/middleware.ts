@@ -1,8 +1,8 @@
-import { withAuth } from 'next-auth/middleware';
+import { withAuth, NextRequestWithAuth } from 'next-auth/middleware';
 
 import { NextRequest, NextResponse } from 'next/server'
 
-export async function middleware(req: NextRequest) {
+export async function middleware(req: NextRequestWithAuth) {
     if (req.nextUrl.pathname.startsWith('/game')) {
         console.log('call middleware - /welcome')
     

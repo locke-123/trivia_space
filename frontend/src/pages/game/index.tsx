@@ -6,7 +6,6 @@ import GameComponent from '@/components/mainPage/game/game_component'
 import { useEffect, useRef, useState } from 'react'
 import { Socket, io } from 'socket.io-client'
 import router from 'next/router'
-import { Button, Modal } from 'antd'
 
 export default function Home() {
   const [isEntered, setIsEntered] = useState(false);

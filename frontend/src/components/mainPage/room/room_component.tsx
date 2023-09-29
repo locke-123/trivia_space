@@ -1,15 +1,16 @@
-import { use, useState } from "react";
+import { useState } from "react";
 import { Container, Room, RoomsWrapper, MainTitle, RoomTitle, RoomInfo, RoomNumber, RoomMember  } from "./room_presenter" 
 import { Button, Input, Modal } from "antd";
+import { RoomComponentProps } from "@/components/subComponents/game/gameComponentTypes";
 
 
-export default function RoomComponent({ roomList, setIsEntered, socketRef, setRoomNumber }) {
+export default function RoomComponent({ roomList, setIsEntered, socketRef, setRoomNumber }: RoomComponentProps) {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [titleValue, setTitleValue] = useState();
     
     const onClickRoom = (e: any) => {
         console.log(e.target.id + "로 룸 입장 시도");
-        socketRef.current.emit("is room started", e.target.id);
+        socketRef.current!.emit("is room started", e.target.id);
     }
 
     const onChangeTitle = (e: any) => {
@@ -22,7 +23,7 @@ export default function RoomComponent({ roomList, setIsEntered, socketRef, setRo
 
     const handleOk = () => {
         setIsModalOpen(false);
-        socketRef.current.emit("create room", titleValue);
+        socketRef.current!.emit("create room", titleValue);
     };
 
     const handleCancel = () => {

@@ -3,7 +3,6 @@ import { SessionProvider } from "next-auth/react"
 import { ConfigProvider } from 'antd';
 import theme_basic from '@/styles/theme/themeConfig';
 import { RecoilRoot } from 'recoil';
-import { SocketContext, socket } from '@/context/socket';
 
 export default function App({ session, Component, ...pageProps }: any) {
   return (

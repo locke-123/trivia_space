@@ -1,7 +1,5 @@
 import Head from 'next/head'
-import Image from 'next/image'
 import styles from '@/styles/Home.module.css'
-import { Button } from 'antd'
 import HeaderComponent from '@/components/mainPage/header/header_component'
 import AboutComponent from '@/components/mainPage/about/about_component'
 

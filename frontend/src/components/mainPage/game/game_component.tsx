@@ -1,13 +1,14 @@
 import ProfileWrapperComponent from "@/components/subComponents/game/profileWrapper/profileWrapper_component"
-import { Container, BottomProfilesWrapper, GameCurtain, CountDownValue, MainWrapper, InformationWrapper, RoomController } from "./game_presenter" 
+import { Container, BottomProfilesWrapper, GameCurtain, MainWrapper, InformationWrapper, RoomController } from "./game_presenter" 
 import { Button } from "antd";
 import { useEffect, useState } from "react";
 import Typist from 'react-typist';
 import ChoiceTableWrapperComponent from "@/components/subComponents/game/choiceTableWrapper/choiceTableWrapper_component";
 import CategoryChoiceWrapperComponent from "@/components/subComponents/game/categoryChoiceWrapper/categoryChoiceWrapper_component";
 import QuizWrapperComponent from "@/components/subComponents/game/quizWrapper/quizWrapper_component";
+import { GameComponentProps } from "@/components/subComponents/game/gameComponentTypes";
 
-export default function GameComponent({socketRef, roomNumber, setIsEntered}) {
+export default function GameComponent({socketRef, roomNumber, setIsEntered}: GameComponentProps) {
     const [curtainHeight, setCurtainHeight] = useState(700);
     const [mainPageX, setMainPageX] = useState(0);
     const [quizCountValue, setQuizCountValue] = useState(10);
@@ -29,40 +30,40 @@ export default function GameComponent({socketRef, roomNumber, setIsEntered}) {
 
     useEffect(() => {
         if (typeof window !== 'undefined') {
-            socketRef.current.on("room member", (res) => {
+            socketRef.current!.on("room member", (res) => {
                 console.log(res);
                 setMemberInfo(res);
             });
 
-            socketRef.current.on("can start game", () => {
+            socketRef.current!.on("can start game", () => {
                 setShowGameStartButton(prev => !prev);
             });
 
-            socketRef.current.on("start game", () => {
+            socketRef.current!.on("start game", () => {
                 setShowGameStartButton(false);
                 setCurtainHeight(95);
             });
 
-            socketRef.current.on("block quiz", (res) => {
+            socketRef.current!.on("block quiz", (res) => {
                 setIsAbleToClickQuiz(res);
             });
     
-            socketRef.current.on("information Text", req => {
+            socketRef.current!.on("information Text", req => {
                 console.log(req);
                 setInformationText(req);
             });
     
-            socketRef.current.on("mainPageX", req => {
+            socketRef.current!.on("mainPageX", req => {
                 console.log("main 페이지 이동 = " + req);
                 setMainPageX(req);
             });
     
-            socketRef.current.on("category select", req => {
+            socketRef.current!.on("category select", req => {
                 console.log(req);
                 setCategoryData(req);
             });
     
-            socketRef.current.on("initial Quiz", () => {
+            socketRef.current!.on("initial Quiz", () => {
                 setQuizCountValue(10);
                 setQuizData("");
                 setAnswerData(["","","",""]);
@@ -72,32 +73,32 @@ export default function GameComponent({socketRef, roomNumber, setIsEntered}) {
                 setAnswerDataFlag(0);
             });
     
-            socketRef.current.on("new Problem", (value) => {
+            socketRef.current!.on("new Problem", (value) => {
                 console.log(value);
                 setQuizData(value);
             });
     
-            socketRef.current.on("new Answer", (value) => {
+            socketRef.current!.on("new Answer", (value) => {
                 console.log(value);
                 setAnswerData(value);
             });
     
-            socketRef.current.on("quizCountdown", (value) => {
+            socketRef.current!.on("quizCountdown", (value) => {
                 console.log(value);
                 setQuizCountValue(value);
             });
     
-            socketRef.current.on("open Answer", (value) => {
+            socketRef.current!.on("open Answer", (value) => {
                 console.log(value);
                 setAnswerButtonIndex(value);
             });
 
-            socketRef.current.on("quiz choice", (value) => {
+            socketRef.current!.on("quiz choice", (value) => {
                 console.log(value);
                 setDisabledButtons((prevDisabledButtons) => [...prevDisabledButtons, value]);
             });
 
-            socketRef.current.emit("room member", roomNumber);
+            socketRef.current!.emit("room member", roomNumber);
             console.log(MemberInfo);
 
             return () => {

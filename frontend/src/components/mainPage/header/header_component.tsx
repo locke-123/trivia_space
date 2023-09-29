@@ -7,6 +7,7 @@ import Image from "next/image";
 import logo from "../../../../public/Trivia-Space-Logo.webp"
 import { useRouter } from "next/router";
 import { signIn, signOut, useSession } from "next-auth/react";
+import { HeaderComponentProps } from "@/components/subComponents/game/gameComponentTypes";
 
 const items: MenuProps['items'] = [
   {
@@ -43,7 +44,7 @@ const items2: MenuProps['items'] = [
   },
 ];
 
-export default function HeaderComponent({socketRef}) {
+export default function HeaderComponent({socketRef}: HeaderComponentProps) {
   const router = useRouter();
   const [current, setCurrent] = useState(router.pathname);
   const session = useSession();

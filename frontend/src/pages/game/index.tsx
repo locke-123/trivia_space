@@ -15,7 +15,7 @@ export default function Home() {
   const socketRef = useRef<Socket | null>(null);
 
   useEffect(() => {
-      socketRef.current = io(`${process.env.GAME_SERVER_IP}`);
+      socketRef.current = io(`${process.env.NEXT_PUBLIC_GAME_SERVER_IP}`);
 
       if (typeof window !== 'undefined') {
         socketRef.current.on("connect", () => {

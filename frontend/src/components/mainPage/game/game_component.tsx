@@ -1,6 +1,7 @@
 import ProfileWrapperComponent from "@/components/subComponents/game/profileWrapper/profileWrapper_component"
 import { Container, BottomProfilesWrapper, GameCurtain, MainWrapper, InformationWrapper, RoomController } from "./game_presenter" 
 import { Button } from "antd";
+import { CaretRightOutlined } from '@ant-design/icons';
 import { useEffect, useState } from "react";
 import Typist from 'react-typist-component';
 import ChoiceTableWrapperComponent from "@/components/subComponents/game/choiceTableWrapper/choiceTableWrapper_component";
@@ -145,7 +146,7 @@ export default function GameComponent({socketRef, roomNumber, setIsEntered}: Gam
     return (
         <Container>
             <RoomController>
-                <h1>{roomNumber}</h1>
+                <div style={{fontSize: "24px", backgroundColor: "#b475eb", borderRadius: "16px", padding: "5px 20px", margin: "0px 10px", color: "#fff"}}>{roomNumber}</div>
                 <Button onClick={onClickQuit}>나가기</Button>
             </RoomController>
             <InformationWrapper><Typist key={informationText}>{informationText}</Typist></InformationWrapper>
@@ -155,7 +156,7 @@ export default function GameComponent({socketRef, roomNumber, setIsEntered}: Gam
                 <QuizWrapperComponent activeAnswer={activeAnswer} answerButtonIndex={answerButtonIndex} activeButtonIndex={activeButtonIndex} quizData={quizData} onClickAnswer={onClickAnswer} onQuizTypeDone={onQuizTypeDone} answerData={answerData} answerDataFlag={answerDataFlag} quizCountValue={quizCountValue} />
             </MainWrapper>
             <GameCurtain style={{height: `${curtainHeight}px`}}>
-                {showGameStartButton ? <Button onClick={onClickGameStart}>게임시작</Button> : ""}
+                {showGameStartButton ? <Button icon={<CaretRightOutlined />} type="primary" style={{width: "300px", height: "100px", fontSize: "36px", border: "1px solid #705f80"}} size="large" onClick={onClickGameStart}>게임시작</Button> : <h1 style={{color: "#fff"}}>대기중..</h1>}
             </GameCurtain>
             <BottomProfilesWrapper>
                 {MemberInfo.map((el, key) => (

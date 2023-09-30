@@ -1,5 +1,5 @@
-import { Container, LogoWrapper, AvatarWrapper } from "./header_presenter"
-import { BookOutlined, CaretRightOutlined, UserOutlined } from '@ant-design/icons';
+import { Container, LogoWrapper, AvatarWrapper, ProfileWrapper } from "./header_presenter"
+import { BookOutlined, CaretRightOutlined, UserOutlined, GithubOutlined } from '@ant-design/icons';
 import { useState } from 'react';
 import type { MenuProps } from 'antd';
 import { Avatar, Button, Menu } from 'antd';
@@ -12,7 +12,7 @@ import { HeaderComponentProps } from "@/components/subComponents/game/gameCompon
 const items: MenuProps['items'] = [
   {
     label: '소개',
-    key: 'welcome',
+    key: '/',
     icon: <BookOutlined />,
   },
   {
@@ -21,26 +21,9 @@ const items: MenuProps['items'] = [
     icon: <CaretRightOutlined />
   },
   {
-    label: '기타 페이지',
-    key: 'app2',
-  },
-];
-
-const items2: MenuProps['items'] = [
-  {
-    label: <a href="https://www.antgroup.com">1st menu item</a>,
-    key: '0',
-  },
-  {
-    label: <a href="https://www.aliyun.com">2nd menu item</a>,
-    key: '1',
-  },
-  {
-    type: 'divider',
-  },
-  {
-    label: '3rd menu item',
-    key: '3',
+    label: '웹 사이트 정보',
+    key: '/info',
+    icon: <GithubOutlined />
   },
 ];
 
@@ -65,12 +48,15 @@ export default function HeaderComponent({socketRef}: HeaderComponentProps) {
   return (
       <Container>
           <LogoWrapper><Image src={logo} alt="logo" /></LogoWrapper>
-          <Menu onClick={onClick} selectedKeys={[current]} mode="horizontal" items={items} />
-          {session.data ? <AvatarWrapper>
-                        <Avatar style={{ backgroundColor: '#6e6e6e' }} icon={<UserOutlined />} />
-                        <Button onClick={() => signOut()} >로그아웃</Button>
-                    </AvatarWrapper>
-          : <Button onClick={() => signIn("naver")} >로그인</Button>}
+          <Menu style={{width: "400px"}} onClick={onClick} selectedKeys={[current]} mode="horizontal" items={items} />
+          {session.data ? 
+          <ProfileWrapper>
+            <h4>{session.data.user?.name} 님</h4>
+            <Button onClick={() => signOut()} >로그아웃</Button>
+          </ProfileWrapper>
+          : <ProfileWrapper>
+            <Button onClick={() => signIn("naver")} >로그인</Button>
+          </ProfileWrapper>}
       </Container>
   )
 }

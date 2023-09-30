@@ -12,7 +12,11 @@ export const Container = styled.div`
 
 export const MainTitle = styled.div`
     background-color: #885d9b;
-    padding: 20px 0px 20px 150px;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-around;
+    align-items: center;
+    height: 75px;
     font-size: 20px;
     border-radius: 16px 16px 0px 0px;
     color: white;

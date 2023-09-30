@@ -32,8 +32,8 @@ export default function RoomComponent({ roomList, setIsEntered, socketRef, setRo
 
     return (
         <Container>
-            <MainTitle>방 목록 <Button style={{marginLeft: '200px'}} onClick={showModal}>방 만들기</Button></MainTitle>
-            <Modal title="방 만들기" open={isModalOpen} onOk={handleOk} onCancel={handleCancel}>
+            <MainTitle>방 목록<Button size="large" style={{marginLeft: '200px'}} onClick={showModal}>방 만들기</Button></MainTitle>
+            <Modal title="방 만들기" cancelText={"취소"} okText={"만들기"} open={isModalOpen} onOk={handleOk} onCancel={handleCancel}>
                 <Input onChange={onChangeTitle} placeholder="방 제목" />
             </Modal>
             <RoomsWrapper>

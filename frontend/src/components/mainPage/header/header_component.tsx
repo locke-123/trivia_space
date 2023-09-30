@@ -1,5 +1,5 @@
-import { Container, LogoWrapper, AvatarWrapper, ProfileWrapper } from "./header_presenter"
-import { BookOutlined, CaretRightOutlined, UserOutlined, GithubOutlined } from '@ant-design/icons';
+import { Container, LogoWrapper, ProfileWrapper } from "./header_presenter"
+import { BookOutlined, CaretRightOutlined, GithubOutlined } from '@ant-design/icons';
 import { useState } from 'react';
 import type { MenuProps } from 'antd';
 import { Avatar, Button, Menu } from 'antd';

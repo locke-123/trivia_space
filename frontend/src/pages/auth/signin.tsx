@@ -4,7 +4,7 @@ import { getServerSession } from "next-auth/next"
 import authOptions from "../api/auth/[...nextauth]";
 
 export default function SignIn() {
-    signIn("naver");
+    signIn("naver", { callbackUrl: 'http://localhost:3000/game' });
   return (<></>);
 }
 

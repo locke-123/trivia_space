@@ -15,7 +15,7 @@ export default function QuizWrapperComponent({ quizData, onQuizTypeDone, answerD
                     key={index} onClick={onClickAnswer} style={!activeAnswer ? {opacity: `0`, pointerEvents: "none"} : answerButtonIndex !== null && answerButtonIndex !== data ? 
                         {opacity: `0`, pointerEvents: "none"}:
                         {opacity: `${answerDataFlag}`, pointerEvents: "auto"}} 
-                    id={data} block size="large"><span id={data}>{data}</span></Button>
+                    id={data} block size="large"><span title={data} id={data}>{data}</span></Button>
                 ))}
             </AnswerWrapper>
         </Container>

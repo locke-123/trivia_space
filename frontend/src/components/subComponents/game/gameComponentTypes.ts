@@ -34,6 +34,9 @@ export interface GameComponentProps {
     socketRef : MutableRefObject<Socket | null>;
     roomNumber: number | undefined;
     setIsEntered: Dispatch<SetStateAction<boolean>>;
+    soundVolume: number;
+    sound: soundProps;
+    onChangeVolume: (value: number) => void;
 }
 
 export interface RoomComponentProps {
@@ -41,6 +44,21 @@ export interface RoomComponentProps {
     socketRef : MutableRefObject<Socket | null>;
     setRoomNumber: Dispatch<SetStateAction<undefined>>;
     setIsEntered: Dispatch<SetStateAction<boolean>>;
+    soundVolume: number;
+    sound: soundProps;
+    onChangeVolume: (value: number) => void;
+}
+
+interface soundProps {
+    roomBGM: Howl;
+    waitingBGM: Howl;
+    startGameBGM: Howl;
+    thinkingTime: Howl;
+    gameStart: Howl;
+    interface: Howl;
+    gameBGM: Howl;
+    bellRing: Howl;
+    newsTing: Howl;
 }
 
 export interface roomListProps {
@@ -56,4 +74,5 @@ export interface HeaderComponentProps {
 export interface ProfileWrapperComponentProps {
     userName: string;
     money: number;
+    num: number;
 }

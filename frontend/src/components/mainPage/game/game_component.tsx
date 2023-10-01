@@ -9,7 +9,7 @@ import CategoryChoiceWrapperComponent from "@/components/subComponents/game/cate
 import QuizWrapperComponent from "@/components/subComponents/game/quizWrapper/quizWrapper_component";
 import { GameComponentProps } from "@/components/subComponents/game/gameComponentTypes";
 
-export default function GameComponent({socketRef, roomNumber, setIsEntered}: GameComponentProps) {
+export default function GameComponent({socketRef, roomNumber, setIsEntered, sound, soundVolume, onChangeVolume }: GameComponentProps) {
     const [curtainHeight, setCurtainHeight] = useState(700);
     const [mainPageX, setMainPageX] = useState(0);
     const [quizCountValue, setQuizCountValue] = useState(10);
@@ -27,22 +27,32 @@ export default function GameComponent({socketRef, roomNumber, setIsEntered}: Gam
     const [disabledButtons, setDisabledButtons] = useState([""]);
     const [isAbleToClickQuiz, setIsAbleToClickQuiz] = useState(false);
     const [showGameStartButton, setShowGameStartButton] = useState(false);
+    const [showWaitMsg, setShowWaitMsg] = useState(true);
     const [MemberInfo, setMemberInfo] = useState([{name: "aaa", money: 0}]);
 
     useEffect(() => {
+        sound.waitingBGM.play();
+
         if (typeof window !== 'undefined') {
             socketRef.current!.on("room member", (res) => {
                 console.log(res);
                 setMemberInfo(res);
             });
 
-            socketRef.current!.on("can start game", () => {
-                setShowGameStartButton(prev => !prev);
+            socketRef.current!.on("can start game", (bool) => {
+                setShowGameStartButton(bool);
             });
 
             socketRef.current!.on("start game", () => {
+                setShowWaitMsg(false);
                 setShowGameStartButton(false);
                 setCurtainHeight(95);
+                if(sound.waitingBGM.playing()) {
+                    sound.waitingBGM.stop();
+                    sound.gameStart.play();
+                    sound.startGameBGM.play();
+                    sound.gameBGM.play();
+                }
             });
 
             socketRef.current!.on("block quiz", (res) => {
@@ -77,6 +87,7 @@ export default function GameComponent({socketRef, roomNumber, setIsEntered}: Gam
             socketRef.current!.on("new Problem", (value) => {
                 console.log(value);
                 setQuizData(value);
+                sound.newsTing.play();
             });
     
             socketRef.current!.on("new Answer", (value) => {
@@ -86,6 +97,12 @@ export default function GameComponent({socketRef, roomNumber, setIsEntered}: Gam
     
             socketRef.current!.on("quizCountdown", (value) => {
                 console.log(value);
+                if(!sound.thinkingTime.playing()) {
+                    sound.thinkingTime.play();
+                }
+                if(value === 0) {
+                    sound.bellRing.play();
+                }
                 setQuizCountValue(value);
             });
     
@@ -96,6 +113,7 @@ export default function GameComponent({socketRef, roomNumber, setIsEntered}: Gam
 
             socketRef.current!.on("quiz choice", (value) => {
                 console.log(value);
+                sound.interface.play();
                 setDisabledButtons((prevDisabledButtons) => [...prevDisabledButtons, value]);
             });
 
@@ -104,6 +122,9 @@ export default function GameComponent({socketRef, roomNumber, setIsEntered}: Gam
 
             return () => {
                 socketRef.current!.emit("somebody quit room", roomNumber);
+                sound.waitingBGM.stop();
+                sound.startGameBGM.stop();
+                sound.gameBGM.stop();
             }
         }
     }, [])
@@ -131,6 +152,7 @@ export default function GameComponent({socketRef, roomNumber, setIsEntered}: Gam
         setActiveButtonIndex(e.target.title);
         socketRef.current!.emit("User Answer", e.target.id, roomNumber);
         console.log(activeButtonIndex);
+        console.log(answerData);
         console.log(answerButtonIndex);
     }
 
@@ -156,11 +178,11 @@ export default function GameComponent({socketRef, roomNumber, setIsEntered}: Gam
                 <QuizWrapperComponent activeAnswer={activeAnswer} answerButtonIndex={answerButtonIndex} activeButtonIndex={activeButtonIndex} quizData={quizData} onClickAnswer={onClickAnswer} onQuizTypeDone={onQuizTypeDone} answerData={answerData} answerDataFlag={answerDataFlag} quizCountValue={quizCountValue} />
             </MainWrapper>
             <GameCurtain style={{height: `${curtainHeight}px`}}>
-                {showGameStartButton ? <Button icon={<CaretRightOutlined />} type="primary" style={{width: "300px", height: "100px", fontSize: "36px", border: "1px solid #705f80"}} size="large" onClick={onClickGameStart}>게임시작</Button> : <h1 style={{color: "#fff"}}>대기중..</h1>}
+                {showGameStartButton ? <Button icon={<CaretRightOutlined />} type="primary" style={{width: "300px", height: "100px", fontSize: "36px", border: "1px solid #705f80"}} size="large" onClick={onClickGameStart}>게임시작</Button> : showWaitMsg ? <h1 style={{color: "#fff"}}>대기중..</h1> : "" }
             </GameCurtain>
             <BottomProfilesWrapper>
                 {MemberInfo.map((el, key) => (
-                    <ProfileWrapperComponent userName={el.name} money={el.money} key={key}/>
+                    <ProfileWrapperComponent userName={el.name} money={el.money} num={key} key={key}/>
                 ))}
             </BottomProfilesWrapper>
         </Container>

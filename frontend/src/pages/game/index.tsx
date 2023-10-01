@@ -6,14 +6,28 @@ import GameComponent from '@/components/mainPage/game/game_component'
 import { useEffect, useRef, useState } from 'react'
 import { Socket, io } from 'socket.io-client'
 import router from 'next/router'
+import { Howl } from 'howler';
 
 export default function Home() {
   const [isEntered, setIsEntered] = useState(false);
   const [roomList, setRoomList] = useState([]);
   const [roomNumber, setRoomNumber] = useState();
-  
+
   const socketRef = useRef<Socket | null>(null);
 
+  const [soundVolume, setSoundVolume] = useState(0.1);
+  const [sound, setSound] = useState({
+    roomBGM : new Howl({ src: ['/inspirational-background-music-124020.mp3'], volume: soundVolume, loop: true,}),
+    waitingBGM : new Howl({ src: ['/waiting-music-116216.mp3'], volume: soundVolume, loop: true,}),
+    startGameBGM : new Howl({ src: ['/big-band-show-146321.mp3'], volume: soundVolume}),
+    thinkingTime: new Howl({ src: ['/thinking-time-148496.mp3'], volume: soundVolume}),
+    gameStart: new Howl({ src: ['/game-start-6104.mp3'], volume: soundVolume}),
+    interface: new Howl({ src: ['/interface-124464.mp3'], volume: soundVolume}),
+    gameBGM: new Howl({ src: ['/documentary-piano-ambient-166279.mp3'], volume: soundVolume, loop: true,}),
+    bellRing: new Howl({ src: ['/service-bell-ring-14610.mp3'], volume: soundVolume}),
+    newsTing: new Howl({ src: ['/news-ting-6832.mp3'], volume: soundVolume}),
+  });
+  
   useEffect(() => {
       socketRef.current = io(`${process.env.NEXT_PUBLIC_GAME_SERVER_IP}`);
 
@@ -51,9 +65,24 @@ export default function Home() {
         return () => {
             socketRef.current!.disconnect();
             console.log('소켓 연결 해제');
+            Howler.unload();
         };
       }
   },[])
+
+  const onChangeVolume = (value: number) => {
+    if (isNaN(value)) {
+      return;
+    }
+    setSoundVolume(value);
+    sound.roomBGM.volume(value);
+    sound.startGameBGM.volume(value);
+    sound.thinkingTime.volume(value);
+    sound.waitingBGM.volume(value);
+    sound.gameBGM.volume(value);
+    sound.interface.volume(value);
+    sound.gameStart.volume(value);
+  }
 
   return (
     <>
@@ -65,8 +94,8 @@ export default function Home() {
       </Head>
       <main className={styles.main}>
         <HeaderComponent socketRef={socketRef} />
-        {isEntered ? <GameComponent roomNumber={roomNumber} socketRef={socketRef} setIsEntered={setIsEntered} />
-         : <RoomComponent socketRef={socketRef} roomList={roomList} setRoomNumber={setRoomNumber} setIsEntered={setIsEntered} />}
+        {isEntered ? <GameComponent roomNumber={roomNumber} socketRef={socketRef} setIsEntered={setIsEntered} sound={sound} soundVolume={soundVolume} onChangeVolume={onChangeVolume} />
+         : <RoomComponent socketRef={socketRef} roomList={roomList} setRoomNumber={setRoomNumber} setIsEntered={setIsEntered} sound={sound} soundVolume={soundVolume} onChangeVolume={onChangeVolume} />}
       </main>
     </>
   )

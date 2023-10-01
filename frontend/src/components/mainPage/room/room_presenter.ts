@@ -11,6 +11,7 @@ export const Container = styled.div`
 `
 
 export const MainTitle = styled.div`
+    position: relative;
     background-color: #885d9b;
     display: flex;
     flex-direction: row;
@@ -21,6 +22,19 @@ export const MainTitle = styled.div`
     border-radius: 16px 16px 0px 0px;
     color: white;
     font-weight: 500;
+`
+
+export const VolumeSlider = styled.div`
+    position: absolute;
+    right: 20px;
+    width: 150px;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    background-color: #b475ebff;
+    padding: 0px 8px;
+    border-radius: 16px;
 `
 
 export const RoomsWrapper = styled.div`

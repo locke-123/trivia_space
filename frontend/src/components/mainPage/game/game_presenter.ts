@@ -9,6 +9,7 @@ export const Container = styled.div`
     margin: 0 auto;
     margin-top: 20px;
     background-color: white;
+    overflow: hidden;
 `
 
 export const RoomController = styled.div`
@@ -44,6 +45,7 @@ export const GameCurtain = styled.div`
     display: flex;
     justify-content: center;
     align-items: center;
+    border-radius: 16px;
 `
 
 export const InformationWrapper = styled.div`
@@ -57,7 +59,6 @@ export const InformationWrapper = styled.div`
 export const MainWrapper = styled.div`
     position: absolute;
     top: 50px;
-    background-color: rgba(0.5, 0.5, 0.5, 0.1);
     width: 3600px;
     height: 555px;
     display: flex;

@@ -4,6 +4,7 @@ const https = require('https');
 const cors = require("cors")
 const { Server } = require("socket.io");
 const axios = require("axios");
+require("dotenv").config();
 
 const app = express();
 app.use(cors())
@@ -13,6 +14,7 @@ app.set("host", process.env.HOST || "127.0.0.1"); // 아이피 설정
 
 const httpServer = http.createServer(app).listen(3030, () => {
     console.log("포트 3030에 연결되었습니다.");
+    console.log(process.env.DB_TEST);
 });
 
 const socketServer = new Server(httpServer, {
@@ -130,7 +132,7 @@ const LeaveRoom = (socket) => {
                 socketServer.to("lobby").emit("refresh room info", roomMemberArr);
                 console.log(socketServer.sockets.adapter.rooms);
             } else {
-                socketServer.to("room|"+number).emit("can start game");
+                GameStart(socket, number);
                 const targetRoom = roomMemberArr.find(room => room.number === number).memberInfo
                 targetRoom.splice(targetRoom.findIndex(user => user.socket === socket.id), 1);
                 socket.leave(item);
@@ -148,7 +150,9 @@ const LeaveRoom = (socket) => {
 
 const GameStart = (socket, number) => {
     if(roomMemberArr.find(room => room.number === number).member > 1) {
-        socketServer.to("room|"+number).emit("can start game");
+        socketServer.to("room|"+number).emit("can start game", true);
+    } else {
+        socketServer.to("room|"+number).emit("can start game", false);
     }
 }
 
@@ -258,10 +262,10 @@ const CheckAnswer = (socket, number) => {
             socketServer.to("room|"+number).emit("open Answer", correct_answer);
             setTimeout(() => {
                 let correct_user = 0;
-                roomMemberArr.find(room => room.number === number).memberInfo.map((el) => {
+                roomMemberArr.find(room => room.number === number)?.memberInfo.map((el) => {
                     if(el.answer === correct_answer) {
                         correct_user++;
-                        el.money += Math.floor(Number(bill)/2);
+                        el.money += Math.floor(Number(bill)/roomMemberArr.find(room => room.number === number).memberInfo.length);
                     }
                 })
                 console.log(correct_user)

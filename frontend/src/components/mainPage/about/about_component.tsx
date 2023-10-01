@@ -28,13 +28,13 @@ export default function AboutComponent() {
             point: 226100
         },
         {
-            key: '2',
+            key: '3',
             name: '럭키의마법사',
             win: 42,
             point: 186300
         },
         {
-            key: '2',
+            key: '4',
             name: 'Liseh',
             win: 15,
             point: 43800

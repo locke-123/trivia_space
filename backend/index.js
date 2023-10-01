@@ -14,7 +14,6 @@ app.set("host", process.env.HOST || "127.0.0.1"); // 아이피 설정
 
 const httpServer = http.createServer(app).listen(3030, () => {
     console.log("포트 3030에 연결되었습니다.");
-    console.log(process.env.DB_TEST);
 });
 
 const socketServer = new Server(httpServer, {
@@ -27,6 +26,10 @@ const socketServer = new Server(httpServer, {
 const axiosInstance = axios.create({
   httpsAgent: new https.Agent({ rejectUnauthorized: false }) // HTTPS 요청을 허용하는 설정
 });
+
+// deepl 설정
+const deepl = require('deepl-node');
+const translator = new deepl.Translator(process.env.DEEPL_KEY);
 
 let roomMemberArr = [{title: "방제1", number: "315", member: 0, started: false, memberInfo: []}]
 let roomCreateNum = 1;
@@ -202,10 +205,13 @@ const QuizStart = (socket, req, number) => {
         .then(response => {
             const data = response.data;
             console.log(data.results[0]);
-            setTimeout(() => {
+            setTimeout( async () => {
+                const tResult = await translator.translateText(
+                    [data.results[0].question, data.results[0].correct_answer,
+                    data.results[0].incorrect_answers[0], data.results[0].incorrect_answers[1], data.results[0].incorrect_answers[2]], 'en', 'ko');
                 socketServer.to("room|"+number).emit("mainPageX", -2400);
-                QuizPart(socket, data.results[0], number);
-            }, 1000);
+                QuizPart(socket, tResult, number);
+            }, 500);
         })
         .catch(error => {
             console.error("Error fetching data:", error);
@@ -215,10 +221,29 @@ const QuizStart = (socket, req, number) => {
 let answers = ["","","",""];
 let correct_answer;
 
-const QuizPart = (socket, data, number) => {
-    data.incorrect_answers.push(data.correct_answer);
-    answers = data.incorrect_answers;
-    correct_answer = data.correct_answer;
+// (async () => {
+//     const tResult = await translator.translateText('how are you?', 'en', 'ko');
+//     console.log(tResult.text);
+// })();
+
+/*
+{
+  category: 'Entertainment: Film',
+  type: 'multiple',
+  difficulty: 'easy',
+  question: 'In &quot;Jurassic World&quot;, what is the name of the dinosaur that is a genetic hybrid?',
+  correct_answer: 'Indominus Rex',
+  incorrect_answers: [ 'Mosasaurus', 'Pteranodon', 'Tyrannosaurus Rex ' ]
+}
+*/
+
+const QuizPart = (socket, tResult, number) => {
+    answers = new Array(0);
+    answers.push(tResult[2].text)
+    answers.push(tResult[3].text)
+    answers.push(tResult[4].text)
+    answers.push(tResult[1].text);
+    correct_answer = tResult[1].text;
     for (let i = answers.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
         [answers[i], answers[j]] = [answers[j], answers[i]];
@@ -228,7 +253,7 @@ const QuizPart = (socket, data, number) => {
         socketServer.to("room|"+number).emit("information Text", "그럼, 문제나갑니다.");
         setTimeout(() => {
             socketServer.to("room|"+number).emit("information Text", "");
-            socketServer.to("room|"+number).emit("new Problem", data.question);
+            socketServer.to("room|"+number).emit("new Problem", tResult[0].text);
         }, 2000);
     }, 2000);
 }

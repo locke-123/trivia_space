@@ -6,6 +6,7 @@ import type { DocumentContext } from 'next/document';
 export default function MyDocument() {
   return (
     <Html lang="ko">
+      <meta charSet="utf-8"></meta>
       <meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests"></meta>
       <Head />
       <body>

@@ -9,19 +9,27 @@ require("dotenv").config();
 const app = express();
 app.use(cors())
 
-app.set("port", process.env.PORT || 3030); // 포트 설정
-app.set("host", process.env.HOST || "127.0.0.1"); // 아이피 설정
+app.set("port", 3000); // 포트 설정
+app.set("host", "http://localhost"); // 아이피 설정
 
-const httpServer = http.createServer(app).listen(3030, () => {
-    console.log("포트 3030에 연결되었습니다.");
+
+const httpServer = http.createServer(app).listen(3000, () => {
+    console.log("포트 3000에 연결되었습니다.");
 });
 
 const socketServer = new Server(httpServer, {
     cors: {
-        origin: "*",
-        methods: ["GET", "POST"],
+        origin: ["https://trivia-space-chi.vercel.app",
+                "http://localhost"],
     },
 });
+
+// const socketServer = new Server(httpServer, {
+//     cors: {
+//         origin: "*",
+//         methods: ["GET", "POST"],
+//     },
+// });
 
 const axiosInstance = axios.create({
   httpsAgent: new https.Agent({ rejectUnauthorized: false }) // HTTPS 요청을 허용하는 설정
@@ -58,6 +66,21 @@ socketServer.on("connection", socket => {
         }
     });
 
+    socket.on("chatSubmit", (text, roomNumber) => {
+        console.log(socket.id);
+        console.log(text);
+        if(userArr.find(user => user.socket === socket.id) !== undefined) {
+            console.log(userArr.find(user => user.socket === socket.id).name);
+            if(socket.rooms.has('lobby')) {
+                socket.emit("chatSubmit", `${userArr.find(user => user.socket === socket.id).name}: ${text}`);
+                socket.to("lobby").emit("chatSubmit", `${userArr.find(user => user.socket === socket.id).name}: ${text}`);
+            } else {
+                socket.emit("chatSubmit", `${userArr.find(user => user.socket === socket.id).name}: ${text}`);
+                socket.to("room|"+roomNumber).emit("chatSubmit", `${userArr.find(user => user.socket === socket.id).name}: ${text}`);
+            }
+        }
+    });
+
     socket.on("create room", (title) => {
         console.log(`누군가 ${roomCreateNum}방, 방제목: ${title}을 만듬`);
         roomMemberArr.push({title: title, number: roomCreateNum.toString(), member: 0, started: false, memberInfo: []});
@@ -85,7 +108,7 @@ socketServer.on("connection", socket => {
     });
 
     socket.on("is room started", (req) => {
-        socket.emit("is room started", roomMemberArr.find(room => room.number === req).started, req, userArr.find(user => user.socket === socket.id).playing);
+        socket.emit("is room started", roomMemberArr.find(room => room.number === req).started, req, userArr.find(user => user.socket === socket.id).playing, roomMemberArr.find(room => room.number === req).member);
     });
 
     socket.on("game start", (req) => {

@@ -49,6 +49,12 @@ export interface RoomComponentProps {
     onChangeVolume: (value: number) => void;
 }
 
+export interface ChatComponentProps {
+    socketRef : MutableRefObject<Socket | null>;
+    roomNumber: number | undefined;
+    isEntered: boolean;
+}
+
 interface soundProps {
     roomBGM: Howl;
     waitingBGM: Howl;

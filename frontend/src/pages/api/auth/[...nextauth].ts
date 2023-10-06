@@ -14,16 +14,12 @@ export default NextAuth({
         },
         async session({ session, token }) {
           session.user = token as any;
-          console.log("-------")
-          console.log(session);
-          console.log(token)
-          console.log("-------")
           return session;
         },
     },
     secret: process.env.NEXTAUTH_SECRET,
     pages: {
-      //signIn: '/auth/signin',
+      signIn: '/auth/signin',
       //signOut: '/auth/signout',
       //error: '/auth/error', // Error code passed in query string as ?error=
       //verifyRequest: '/auth/verify-request', // (used for check email message)

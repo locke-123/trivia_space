@@ -10,7 +10,7 @@ export const Container = styled.div`
 
 export const LogoWrapper = styled.div`
     margin-right: 50px;
-    &:first-child {
+    &:first-of-type {
         pointer-events : none;
         -webkit-user-select: none;
         -khtml-user-select: none;

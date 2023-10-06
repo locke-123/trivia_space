@@ -16,7 +16,7 @@ export default function RoomComponent({ roomList, setIsEntered, socketRef, setRo
     }, [])
     
     const onClickRoom = (e: any) => {
-        console.log(e.target.id + "로 룸 입장 시도");
+        console.log(e.target.id + "룸 입장 시도");
         socketRef.current!.emit("is room started", e.target.id);
     }
 

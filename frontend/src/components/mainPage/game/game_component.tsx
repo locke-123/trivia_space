@@ -35,7 +35,6 @@ export default function GameComponent({socketRef, roomNumber, setIsEntered, soun
 
         if (typeof window !== 'undefined') {
             socketRef.current!.on("room member", (res) => {
-                console.log(res);
                 setMemberInfo(res);
             });
 
@@ -60,17 +59,14 @@ export default function GameComponent({socketRef, roomNumber, setIsEntered, soun
             });
     
             socketRef.current!.on("information Text", req => {
-                console.log(req);
                 setInformationText(req);
             });
     
             socketRef.current!.on("mainPageX", req => {
-                console.log("main 페이지 이동 = " + req);
                 setMainPageX(req);
             });
     
             socketRef.current!.on("category select", req => {
-                console.log(req);
                 setCategoryData(req);
             });
     
@@ -85,18 +81,15 @@ export default function GameComponent({socketRef, roomNumber, setIsEntered, soun
             });
     
             socketRef.current!.on("new Problem", (value) => {
-                console.log(value);
                 setQuizData(value);
                 sound.newsTing.play();
             });
     
             socketRef.current!.on("new Answer", (value) => {
-                console.log(value);
                 setAnswerData(value);
             });
     
             socketRef.current!.on("quizCountdown", (value) => {
-                console.log(value);
                 if(!sound.thinkingTime.playing()) {
                     sound.thinkingTime.play();
                 }
@@ -107,18 +100,15 @@ export default function GameComponent({socketRef, roomNumber, setIsEntered, soun
             });
     
             socketRef.current!.on("open Answer", (value) => {
-                console.log(value);
                 setAnswerButtonIndex(value);
             });
 
             socketRef.current!.on("quiz choice", (value) => {
-                console.log(value);
                 sound.interface.play();
                 setDisabledButtons((prevDisabledButtons) => [...prevDisabledButtons, value]);
             });
 
             socketRef.current!.emit("room member", roomNumber);
-            console.log(MemberInfo);
 
             return () => {
                 socketRef.current!.emit("somebody quit room", roomNumber);
@@ -130,8 +120,6 @@ export default function GameComponent({socketRef, roomNumber, setIsEntered, soun
     }, [])
 
     const onClickQuiz = (e: any) => {
-        console.log(e);
-        console.log(e.target.id);
         socketRef.current!.emit("Quiz Request", e.target.id, roomNumber);
     }
     
@@ -147,13 +135,8 @@ export default function GameComponent({socketRef, roomNumber, setIsEntered, soun
     }
 
     const onClickAnswer = (e: any) => {
-        console.log(e);
-        console.log(e.target.id);
         setActiveButtonIndex(e.target.title);
         socketRef.current!.emit("User Answer", e.target.id, roomNumber);
-        console.log(activeButtonIndex);
-        console.log(answerData);
-        console.log(answerButtonIndex);
     }
 
     const onClickQuit = (e: any) => {

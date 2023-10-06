@@ -2,7 +2,7 @@ import { Container, LogoWrapper, ProfileWrapper } from "./header_presenter"
 import { BookOutlined, CaretRightOutlined, GithubOutlined } from '@ant-design/icons';
 import { useState } from 'react';
 import type { MenuProps } from 'antd';
-import { Avatar, Button, Menu } from 'antd';
+import { Button, Menu } from 'antd';
 import Image from "next/image";
 import logo from "../../../../public/Trivia-Space-Logo.webp"
 import { useRouter } from "next/router";
@@ -32,15 +32,12 @@ export default function HeaderComponent({socketRef}: HeaderComponentProps) {
   const [current, setCurrent] = useState(router.pathname);
   const session = useSession();
   const onClick: MenuProps['onClick'] = (e) => {
-      console.log('click ', e);
       setCurrent(e.key);
       router.push(e.key);
   };
 
   if(socketRef !== undefined) {
     if(socketRef.current !== null) {
-      console.log(session);
-      console.log(socketRef);
       socketRef.current!.emit("session connect", session);
     }
   }

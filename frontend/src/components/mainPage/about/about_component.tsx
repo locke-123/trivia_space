@@ -2,7 +2,8 @@ import { Button, Table, Tooltip } from "antd"
 import { BottomWrapper, CategoryBlock, CategoryList, CategoryWrapper, CircleWrapper, Container, FooterWrapper, InfoWrapper, InnerImgWrapper, MainText, MainWrapper, OuterImgWrapper, RankingWrapper, Wrapper } from "./about_presenter" 
 import Image from "next/image"
 import aboutImg from '../../../../public/psd files/about.png'
-import innerImg from '../../../../public/gameplay.png'
+import innerImg from '../../../../public/quizplay.png'
+import outerImg from '../../../../public/gameplay.png'
 import rankingImg from '../../../../public/psd files/ranking.png'
 import { useRouter } from "next/router"
 import Link from "next/link"
@@ -97,7 +98,7 @@ export default function AboutComponent() {
                     </InfoWrapper>
                 </MainWrapper>
             </Wrapper>
-            <OuterImgWrapper><Image width={500} height={300} src={innerImg} alt="game play image" /></OuterImgWrapper>
+            <OuterImgWrapper><Image width={500} height={300} src={outerImg} alt="game play image" /></OuterImgWrapper>
             <BottomWrapper>
                 <h1 style={{margin: "10px"}}>주요 특징</h1>
                 <h3 style={{margin: "40px"}}>수많은 24가지의 주제들</h3>

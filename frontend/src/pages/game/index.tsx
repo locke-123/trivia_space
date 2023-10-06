@@ -31,7 +31,7 @@ export default function Home() {
 
   useEffect(() => {
       socketRef.current = io(`${process.env.NEXT_PUBLIC_GAME_SERVER_IP}`, {
-        withCredentials: true,
+        withCredentials: false,
       });
 
       if (typeof window !== 'undefined') {
